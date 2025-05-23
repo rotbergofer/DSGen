@@ -36,7 +36,7 @@ def auth_ui():
                 error_msg = error_json['error']['message']
             except:
                 error_msg = str(e)
-                
+
             if 'EMAIL_EXISTS' in error_msg:
                 st.error("This email is already registered. Please log in.")
             elif 'INVALID_PASSWORD' in error_msg or 'INVALID_LOGIN_CREDENTIALS' in error_msg:
@@ -54,8 +54,9 @@ uid = st.session_state.user['localId']
 email = st.session_state.user['email']
 license_status = db.child("licenses").child(uid).get().val()
 
-if license_status["status"] != "active":
-    st.warning("Your license is inactive. Please purchase one.")
+# 2. Check for missing license data
+if not license_status or license_status.get("status") != "active":
+    st.warning("Your license is inactive or missing. Please purchase one.")
     st.stop()
 
 # Upload images
