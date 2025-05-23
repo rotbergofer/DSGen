@@ -1,0 +1,54 @@
+import streamlit as st
+import pyrebase
+import json
+from utils import manipulate_and_zip, send_email_notification
+
+# Firebase init
+with open("firebase_config.json") as f:
+    config = json.load(f)
+
+firebase = pyrebase.initialize_app(config)
+auth = firebase.auth()
+db = firebase.database()
+
+# Auth UI
+if 'user' not in st.session_state:
+    st.session_state.user = None
+
+def auth_ui():
+    choice = st.radio("Login or Signup", ["Login", "Signup"])
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    if st.button("Submit"):
+        try:
+            if choice == "Signup":
+                user = auth.create_user_with_email_and_password(email, password)
+                db.child("licenses").child(user['localId']).set({"status": "inactive"})
+            else:
+                user = auth.sign_in_with_email_and_password(email, password)
+            st.session_state.user = user
+            st.success("Logged in!")
+        except Exception as e:
+            st.error(str(e))
+
+if not st.session_state.user:
+    auth_ui()
+    st.stop()
+
+uid = st.session_state.user['localId']
+email = st.session_state.user['email']
+license_status = db.child("licenses").child(uid).get().val()
+
+if license_status["status"] != "active":
+    st.warning("Your license is inactive. Please purchase one.")
+    st.stop()
+
+# Upload images
+st.header("Upload Images to Generate Variations")
+uploaded_files = st.file_uploader("Upload", type=["jpg", "png"], accept_multiple_files=True)
+
+if uploaded_files and st.button("Process Images"):
+    zip_file = manipulate_and_zip(uploaded_files)
+    st.success("Done! Download your images below:")
+    st.download_button("Download ZIP", zip_file, file_name="images.zip")
+    send_email_notification(email)
