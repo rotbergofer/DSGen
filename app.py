@@ -29,6 +29,7 @@ def auth_ui():
 
             st.session_state.user = user
             st.success("Logged in!")
+            st.write(uid)
         
         except Exception as e:
             try:
