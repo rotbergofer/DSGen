@@ -51,8 +51,10 @@ if not st.session_state.user:
     st.stop()
 
 uid = st.session_state.user['localId']
+print(uid)
 email = st.session_state.user['email']
 license_status = db.child("licenses").child(uid).get().val()
+print (license_status)
 
 # 2. Check for missing license data
 if not license_status or license_status.get("status") != "active":
