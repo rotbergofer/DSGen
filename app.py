@@ -26,10 +26,25 @@ def auth_ui():
                 db.child("licenses").child(user['localId']).set({"status": "inactive"})
             else:
                 user = auth.sign_in_with_email_and_password(email, password)
+
             st.session_state.user = user
             st.success("Logged in!")
+        
         except Exception as e:
-            st.error(str(e))
+            try:
+                error_json = e.args[1] if isinstance(e.args[1], str) else e.args[1].response.json()
+                error_msg = error_json['error']['message']
+            except:
+                error_msg = str(e)
+                
+            if 'EMAIL_EXISTS' in error_msg:
+                st.error("This email is already registered. Please log in.")
+            elif 'INVALID_PASSWORD' in error_msg or 'INVALID_LOGIN_CREDENTIALS' in error_msg:
+                st.error("Invalid email or password.")
+            elif 'EMAIL_NOT_FOUND' in error_msg:
+                st.error("Email not found. Try signing up.")
+            else:
+                st.error(f"Authentication error: {error_msg}")     
 
 if not st.session_state.user:
     auth_ui()
