@@ -11,7 +11,7 @@ firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
 db = firebase.database()
 
-//Test Firebase Databse
+# Test Firebase Databse
 test_path = "test_write"
 try:
     db.child(test_path).set({"hello": "world"})
