@@ -30,4 +30,12 @@ def send_email_notification(to_email):
         subject="Your images are ready!",
         plain_text_content="Your image processing is complete.")
     sg = SendGridAPIClient('SENDGRID_API_KEY')
-    sg.send(message)
+    try:
+        #sg.send(message)
+        response = sg.send(message)
+        print(response.status_code)
+        print(response.body)
+        print(response.headers)
+    except Exception as e:
+        print(f"SendGrid Error: {e}")
+
