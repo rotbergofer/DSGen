@@ -29,8 +29,8 @@ def auth_ui():
 
             st.session_state.user = user
             st.success("Logged in!")
-            st.write(uid)
-        
+            st.rerun()
+
         except Exception as e:
             try:
                 error_json = e.args[1] if isinstance(e.args[1], str) else e.args[1].response.json()
@@ -48,18 +48,28 @@ def auth_ui():
                 st.error(f"Authentication error: {error_msg}")     
 
 if not st.session_state.user:
+    st.title("🔐 Welcome")
     auth_ui()
     st.stop()
 
 uid = st.session_state.user['localId']
-print(uid)
-email = st.session_state.user['email']
-license_status = db.child("licenses").child(uid).get().val()
-print (license_status)
+st.write("User UID:", uid)
 
-# 2. Check for missing license data
-if not license_status or license_status.get("status") != "active":
-    st.warning("Your license is inactive or missing. Please purchase one.")
+email = st.session_state.user['email']
+try:
+    license_ref = db.child("licenses").child(uid)
+    license_data = license_ref.get().val()
+
+    if license_data is None:
+        # 🔁 License does not exist, create it
+        st.warning("No license record found. Creating one...")
+        license_ref.set({"status": "inactive"})
+        license_data = {"status": "inactive"}
+
+    st.session_state.license_status = license_data["status"]
+
+except Exception as e:
+    st.error(f"Could not retrieve or create license status: {e}")
     st.stop()
 
 # Upload images
