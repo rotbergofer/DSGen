@@ -25,9 +25,9 @@ def manipulate_and_zip(uploaded_files):
 
 def send_email_notification(to_email):
     message = Mail(
-        from_email="your@email.com",
+        from_email="",
         to_emails=to_email,
         subject="Your images are ready!",
         plain_text_content="Your image processing is complete.")
-    sg = SendGridAPIClient("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")
+    sg = SendGridAPIClient('SENDGRID_API_KEY')
     sg.send(message)
